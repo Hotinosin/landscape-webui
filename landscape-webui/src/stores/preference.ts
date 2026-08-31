@@ -1,0 +1,103 @@
+import { defineStore } from "pinia";
+import { ref, watch } from "vue";
+import type { LandscapeUIConfig } from "@landscape-router/types/api/schemas";
+import {
+  get_ui_config,
+  get_ui_config_edit,
+  update_ui_config,
+} from "@/api/sys/config";
+import i18n from "@/i18n";
+import {
+  cacheThemePreference,
+  cacheAccentColor,
+  normalizeThemePreference,
+  readCachedAccentColor,
+  readCachedThemePreference,
+  type AccentColor,
+  type ThemePreference,
+} from "@/themes";
+
+function normalizeLanguage(lang?: string, fallback: string = "zh"): string {
+  if (!lang) return fallback;
+  if (lang === "zh-CN" || lang.startsWith("zh")) return "zh";
+  if (lang === "en-US" || lang.startsWith("en")) return "en";
+  return fallback;
+}
+
+export const usePreferenceStore = defineStore("preference", () => {
+  const language = ref<string | undefined>(undefined);
+  const timezone = ref<string | undefined>(undefined);
+  const theme = ref<ThemePreference>(readCachedThemePreference());
+  const accent = ref<AccentColor>(readCachedAccentColor());
+  const expectedHash = ref<string>("");
+
+  async function loadPreference() {
+    try {
+      const config = await get_ui_config();
+      // 使用 i18n 当前语言作为默认值，正规化后不覆盖浏览器设置
+      const currentLocale = normalizeLanguage(
+        i18n.global.locale.value as string,
+      );
+      language.value = normalizeLanguage(config.language, currentLocale);
+      timezone.value = config.timezone || "Asia/Shanghai";
+      theme.value = normalizeThemePreference(config.theme, theme.value);
+
+      applyPreference();
+    } catch (error) {
+      console.error("Failed to load generic UI config", error);
+    }
+  }
+
+  async function loadPreferenceForEdit() {
+    const { ui, hash } = await get_ui_config_edit();
+    // 使用 i18n 当前语言作为默认值，正规化后不覆盖浏览器设置
+    const currentLocale = normalizeLanguage(i18n.global.locale.value as string);
+    language.value = normalizeLanguage(ui.language, currentLocale);
+    timezone.value = ui.timezone || "Asia/Shanghai";
+    theme.value = normalizeThemePreference(ui.theme, theme.value);
+    expectedHash.value = hash;
+  }
+
+  function applyPreference() {
+    if (language.value) {
+      i18n.global.locale.value = language.value as any;
+    }
+  }
+
+  async function savePreference() {
+    const new_ui: LandscapeUIConfig = {
+      language: language.value === "zh" ? undefined : language.value,
+      timezone: timezone.value === "Asia/Shanghai" ? undefined : timezone.value,
+      theme: theme.value,
+    };
+    await update_ui_config({
+      new_ui,
+      expected_hash: expectedHash.value,
+    });
+
+    // Refresh hash
+    const { hash } = await get_ui_config_edit();
+    expectedHash.value = hash;
+  }
+
+  // Watchers for immediate effect if needed
+  watch(language, (newLang) => {
+    if (newLang) {
+      i18n.global.locale.value = newLang as any;
+    }
+  });
+
+  watch(theme, (value) => cacheThemePreference(value), { immediate: true });
+  watch(accent, (value) => cacheAccentColor(value), { immediate: true });
+
+  return {
+    language,
+    timezone,
+    theme,
+    accent,
+    expectedHash,
+    loadPreference,
+    loadPreferenceForEdit,
+    savePreference,
+  };
+});

@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import { delete_geo_ip_config, update_geo_ip_by_upload } from "@/api/geo/ip";
+import type { GeoIpSourceConfig } from "@landscape-router/types/api/schemas";
+import { computed, ref } from "vue";
+import { useFrontEndStore } from "@/stores/front_end_config";
+import { mask_string } from "@/lib/common";
+import { usePreferenceStore } from "@/stores/preference";
+import { useI18n } from "vue-i18n";
+const prefStore = usePreferenceStore();
+
+const frontEndStore = useFrontEndStore();
+const { t } = useI18n();
+const emit = defineEmits(["refresh", "refresh:keys"]);
+
+interface Prop {
+  geo_ip_source: GeoIpSourceConfig;
+}
+const props = defineProps<Prop>();
+const show_edit_modal = ref(false);
+
+async function del() {
+  if (props.geo_ip_source.id) {
+    await delete_geo_ip_config(props.geo_ip_source.id);
+    emit("refresh");
+  }
+}
+
+const title = computed(() => {
+  return frontEndStore.presentation_mode
+    ? mask_string(props.geo_ip_source.name || "undefined")
+    : props.geo_ip_source.name || "undefined";
+});
+
+const show_upload = ref(false);
+const onGeoUpload = async (formData: FormData) => {
+  await update_geo_ip_by_upload(props.geo_ip_source.name, formData);
+};
+</script>
+<template>
+  <n-flex>
+    <n-card size="small">
+      <template #header>
+        <StatusTitle
+          :enable="geo_ip_source.enable"
+          :remark="title"
+        ></StatusTitle>
+      </template>
+      <n-descriptions bordered label-placement="top" :column="2">
+        <n-descriptions-item :label="t('geo.item_card.source_type')">
+          <n-tag
+            :bordered="false"
+            :type="geo_ip_source.source.t === 'url' ? 'info' : 'success'"
+            size="small"
+          >
+            {{ geo_ip_source.source.t === "url" ? "URL" : "Direct" }}
+          </n-tag>
+        </n-descriptions-item>
+        <template v-if="geo_ip_source.source.t === 'url'">
+          <n-descriptions-item :label="t('geo.item_card.source_format')">
+            <n-tag
+              :bordered="false"
+              :type="
+                (geo_ip_source.source.format || 'dat') === 'txt'
+                  ? 'warning'
+                  : 'info'
+              "
+              size="small"
+            >
+              {{ (geo_ip_source.source.format || "dat").toUpperCase() }}
+            </n-tag>
+          </n-descriptions-item>
+          <n-descriptions-item label="URL">
+            <n-ellipsis style="max-width: 200px">
+              {{
+                frontEndStore.presentation_mode
+                  ? mask_string(geo_ip_source.source.url)
+                  : geo_ip_source.source.url
+              }}
+            </n-ellipsis>
+          </n-descriptions-item>
+          <n-descriptions-item :label="t('geo.item_card.next_update_time')">
+            <n-time
+              :time="geo_ip_source.source.next_update_at"
+              format="yyyy-MM-dd hh:mm:ss"
+              :time-zone="prefStore.timezone"
+            />
+          </n-descriptions-item>
+          <n-descriptions-item
+            v-if="(geo_ip_source.source.format || 'dat') === 'txt'"
+            :label="t('geo.item_card.txt_key')"
+          >
+            {{ (geo_ip_source.source.txt_key || "DEFAULT").toUpperCase() }}
+          </n-descriptions-item>
+        </template>
+        <template v-if="geo_ip_source.source.t === 'direct'">
+          <n-descriptions-item :label="t('geo.item_card.key_count')">
+            {{ geo_ip_source.source.data.length }}
+          </n-descriptions-item>
+        </template>
+      </n-descriptions>
+      <template #header-extra>
+        <n-flex>
+          <n-button
+            v-if="geo_ip_source.source.t === 'url'"
+            size="small"
+            type="info"
+            secondary
+            @click="show_upload = true"
+          >
+            {{ t("geo.item_card.update_with_file") }}
+          </n-button>
+
+          <EditButton @click="show_edit_modal = true" />
+
+          <n-popconfirm @positive-click="del()">
+            <template #trigger>
+              <n-button size="small" type="error" secondary @click="">
+                {{ t("common.delete") }}
+              </n-button>
+            </template>
+            {{ t("common.confirm_delete") }}
+          </n-popconfirm>
+        </n-flex>
+      </template>
+    </n-card>
+    <GeoIpEditModal
+      :id="geo_ip_source.id"
+      @refresh="emit('refresh')"
+      v-model:show="show_edit_modal"
+    ></GeoIpEditModal>
+
+    <GeoUploadFile
+      v-model:show="show_upload"
+      :upload="onGeoUpload"
+      @refresh="emit('refresh:keys')"
+    ></GeoUploadFile>
+  </n-flex>
+</template>

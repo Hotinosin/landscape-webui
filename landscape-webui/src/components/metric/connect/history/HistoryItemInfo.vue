@@ -1,0 +1,370 @@
+<script setup lang="ts">
+import type {
+  ConnectKey,
+  ConnectHistoryStatus,
+} from "@landscape-router/types/api/schemas";
+import { useFrontEndStore } from "@/stores/front_end_config";
+import { useRouter } from "vue-router";
+import {
+  ChartLine,
+  ArrowUp,
+  ArrowDown,
+  ArrowRight,
+  Search,
+  Flash,
+  SearchLocate as GlobeSearch24Regular,
+} from "@vicons/carbon";
+import { mask_string } from "@/lib/common";
+import { formatSize, formatCount } from "@/lib/util";
+import { useThemeVars } from "naive-ui";
+import { useEnrolledDeviceStore } from "@/stores/enrolled_device";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
+
+const enrolledDeviceStore = useEnrolledDeviceStore();
+
+const frontEndStore = useFrontEndStore();
+const themeVars = useThemeVars();
+const router = useRouter();
+import { usePreferenceStore } from "@/stores/preference";
+const prefStore = usePreferenceStore();
+
+interface Props {
+  history: ConnectHistoryStatus;
+  index?: number;
+}
+
+const props = defineProps<Props>();
+
+function l4_proto(value: number): string {
+  if (value == 6) {
+    return "TCP";
+  } else if (value == 17) {
+    return "UDP";
+  } else if (value == 1) {
+    return "ICMP";
+  }
+  return "Unknow";
+}
+
+const goToLive = (history: ConnectHistoryStatus) => {
+  router.push({
+    path: "/metrics/conn/live",
+    query: {
+      src_ip: history.src_ip,
+      dst_ip: history.dst_ip,
+      port_start: history.src_port.toString(),
+      port_end: history.dst_port.toString(),
+      flow_id: history.flow_id.toString(),
+      ifindex: history.ifindex.toString(),
+    },
+  });
+};
+
+const emit = defineEmits([
+  "show:chart",
+  "search:tuple",
+  "search:src",
+  "search:dst",
+]);
+</script>
+
+<template>
+  <div
+    class="box"
+    :style="{
+      backgroundColor:
+        (index ?? 0) % 2 === 1
+          ? 'var(--app-surface-alternate-color)'
+          : 'var(--app-surface-color)',
+    }"
+  >
+    <n-card
+      size="small"
+      :bordered="false"
+      style="background: transparent"
+      content-style="padding: 4px var(--app-space-section)"
+    >
+      <n-flex align="center" justify="space-between" :wrap="false">
+        <n-flex class="history-row-main" align="center" :wrap="false">
+          <n-flex align="center" :wrap="false" style="flex: 0 0 220px">
+            <n-flex vertical size="small">
+              <n-time
+                :time="history.last_report_time"
+                format="yyyy-MM-dd HH:mm:ss"
+                :time-zone="prefStore.timezone"
+              />
+              <div
+                class="metric-muted"
+                style="font-size: var(--app-font-size-micro)"
+              >
+                <n-tooltip trigger="hover">
+                  <template #trigger>
+                    <span class="duration-link" style="cursor: help">
+                      {{ $t("metric.connect.filter.duration") }}
+                      <DurationTime
+                        :seconds="
+                          Math.max(
+                            0,
+                            history.last_report_time - history.create_time_ms,
+                          ) / 1000
+                        "
+                      />
+                    </span>
+                  </template>
+                  {{ $t("metric.connect.filter.create_time") }}:
+                  <n-time
+                    :time="history.create_time_ms"
+                    format="yyyy-MM-dd HH:mm:ss"
+                    type="date"
+                    :time-zone="prefStore.timezone"
+                  />
+                </n-tooltip>
+              </div>
+            </n-flex>
+          </n-flex>
+
+          <n-flex
+            :wrap="false"
+            style="
+              flex: 0 0 250px;
+              font-variant-numeric: tabular-nums;
+              font-family: var(--font-mono);
+            "
+          >
+            <n-tag type="success" :bordered="false" size="small">
+              {{ history.l3_proto == 0 ? "IPV4" : "IPV6" }}
+            </n-tag>
+            <n-tag type="info" :bordered="false" size="small">
+              {{ l4_proto(history.l4_proto) }}
+            </n-tag>
+            <n-tag
+              v-if="history.gress === 0"
+              type="warning"
+              :bordered="false"
+              size="small"
+            >
+              IN
+            </n-tag>
+            <n-tag :bordered="false" size="small">
+              IF: {{ history.ifindex }}
+            </n-tag>
+          </n-flex>
+
+          <n-flex
+            class="history-endpoints"
+            align="center"
+            :wrap="false"
+            style="font-variant-numeric: tabular-nums"
+            size="small"
+          >
+            <div
+              style="
+                display: inline-flex;
+                align-items: center;
+                gap: var(--app-space-2xs);
+              "
+              :style="{
+                flexDirection: history.gress === 0 ? 'row-reverse' : 'row',
+              }"
+            >
+              <span>{{
+                `${enrolledDeviceStore.GET_NAME_WITH_FALLBACK(history.src_ip)}:${frontEndStore.MASK_PORT(history.src_port)}`
+              }}</span>
+              <n-icon size="14" color="var(--app-text-muted-color)">
+                <ArrowRight />
+              </n-icon>
+              <span>{{
+                `${enrolledDeviceStore.GET_NAME_WITH_FALLBACK(history.dst_ip)}:${frontEndStore.MASK_PORT(history.dst_port)}`
+              }}</span>
+            </div>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button
+                  text
+                  tag="a"
+                  :href="`https://edge-geo.y8955.workers.dev/${history.dst_ip}`"
+                  target="_blank"
+                  @click.stop
+                  :style="{
+                    fontSize: '16px',
+                    color: themeVars.warningColor,
+                    opacity: 0.7,
+                  }"
+                >
+                  <n-icon><GlobeSearch24Regular /></n-icon>
+                </n-button>
+              </template>
+              {{ t("metric.connect.ip_stats.query_ip_ownership") }}
+            </n-tooltip>
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button
+                  text
+                  @click.stop="emit('search:tuple', history)"
+                  style="
+                    font-size: var(--app-font-size-title);
+                    color: themeVars.infoColor;
+                    opacity: 0.7;
+                  "
+                >
+                  <n-icon><Search /></n-icon>
+                </n-button>
+              </template>
+              {{ $t("metric.connect.tip.precise_filter") }}
+            </n-tooltip>
+
+            <n-tooltip trigger="hover">
+              <template #trigger>
+                <n-button
+                  text
+                  @click.stop="goToLive(history)"
+                  style="
+                    font-size: var(--app-font-size-title);
+                    color: themeVars.successColor;
+                    opacity: 0.7;
+                  "
+                >
+                  <n-icon><Flash /></n-icon>
+                </n-button>
+              </template>
+              {{ $t("metric.connect.tip.view_live") }}
+            </n-tooltip>
+          </n-flex>
+
+          <!-- 累计总量展示 -->
+          <n-flex
+            class="history-volume"
+            align="center"
+            :wrap="false"
+            style="gap: var(--app-space-lg)"
+          >
+            <!-- 累计上行 -->
+            <n-flex
+              align="center"
+              :wrap="false"
+              size="small"
+              style="width: 90px"
+            >
+              <n-icon :color="themeVars.infoColor" size="20">
+                <ArrowUp />
+              </n-icon>
+              <n-flex vertical :size="[-4, 0]" style="flex: 1">
+                <span
+                  style="
+                    font-size: var(--app-font-size-label);
+                    font-weight: 600;
+                    white-space: nowrap;
+                  "
+                >
+                  {{ formatSize(history.total_egress_bytes) }}
+                </span>
+                <span
+                  class="metric-muted"
+                  style="
+                    font-size: var(--app-font-size-micro);
+                    white-space: nowrap;
+                  "
+                >
+                  {{ formatCount(history.total_egress_pkts) }} pkt
+                </span>
+              </n-flex>
+            </n-flex>
+
+            <!-- 累计下行 -->
+            <n-flex
+              align="center"
+              :wrap="false"
+              size="small"
+              style="width: 90px"
+            >
+              <n-icon :color="themeVars.successColor" size="20">
+                <ArrowDown />
+              </n-icon>
+              <n-flex vertical :size="[-4, 0]" style="flex: 1">
+                <span
+                  style="
+                    font-size: var(--app-font-size-label);
+                    font-weight: 600;
+                    white-space: nowrap;
+                  "
+                >
+                  {{ formatSize(history.total_ingress_bytes) }}
+                </span>
+                <span
+                  class="metric-muted"
+                  style="
+                    font-size: var(--app-font-size-micro);
+                    white-space: nowrap;
+                  "
+                >
+                  {{ formatCount(history.total_ingress_pkts) }} pkt
+                </span>
+              </n-flex>
+            </n-flex>
+          </n-flex>
+        </n-flex>
+
+        <!-- 右侧区域：操作按钮 -->
+        <n-flex align="center" :wrap="false">
+          <!-- 图表按钮 -->
+          <n-button
+            :focusable="false"
+            text
+            style="font-size: var(--app-font-size-title)"
+            @click="emit('show:chart', history)"
+          >
+            <n-icon>
+              <ChartLine />
+            </n-icon>
+          </n-button>
+        </n-flex>
+      </n-flex>
+    </n-card>
+  </div>
+</template>
+
+<style scoped>
+.box {
+  border: 2px solid transparent;
+  transition: border-color 0.25s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.box:hover {
+  border-color: var(--app-brand-color);
+}
+
+.metric-muted {
+  color: var(--app-text-muted-color);
+}
+
+.duration-link {
+  border-bottom: 1px dashed var(--app-text-muted-color);
+}
+
+.history-row-main {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.history-endpoints {
+  min-width: 320px;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.history-endpoints > :first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-volume {
+  flex: 0 0 196px;
+}
+</style>

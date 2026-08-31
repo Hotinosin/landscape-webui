@@ -1,0 +1,68 @@
+export default {
+  title: "Device Management",
+  edit_title: "Edit Device Binding",
+  add_title: "Add Device Binding",
+
+  name: "Display Name",
+  actions: "Actions",
+  name_placeholder: "e.g. My phone",
+  name_required: "Please enter a display name",
+
+  hostname: "Hostname",
+  hostname_placeholder: "e.g. my-device",
+  hostname_invalid:
+    "Hostname labels must be 1-63 characters and must not start or end with a hyphen",
+
+  mac: "MAC Address",
+  mac_placeholder: "00:11:22:33:44:55",
+  mac_required: "MAC address is required",
+  mac_invalid: "Please enter a valid MAC address (XX:XX:XX:XX:XX:XX)",
+
+  iface: "Network",
+  iface_placeholder: "Select interface (optional)",
+  iface_none: "No restriction (global)",
+
+  fake_name: "Privacy Name",
+  fake_name_placeholder: "Optional: display name in privacy mode",
+
+  ipv4: "IPv4 Binding",
+  ipv4_placeholder: "Optional: 192.168.x.x",
+  ipv4_invalid: "Please enter a valid IP address",
+  ipv4_out_of_range: "IP is outside DHCP range of interface {iface}",
+
+  ipv6: "IPv6 Binding",
+  ipv6_placeholder: "Optional: IPv6 address",
+  ipv6_random: "Random",
+  ipv6_invalid: "Enter a valid /64 IPv6 host suffix, such as ::100",
+  ipv6_wan_iid_reserved:
+    "The highest IID bit is reserved for WAN addresses; use a suffix below ::8000:0:0:0",
+
+  tag: "Tag",
+  remark: "Remark",
+  remark_placeholder: "More details about this device...",
+
+  save_success: "Saved successfully",
+  save_failed: "Save failed",
+  load_failed: "Load failed",
+  cancel: "Cancel",
+  save: "Save",
+
+  empty_desc: "No device bindings yet",
+  add_now: "Add now",
+  add_btn: "Add Device",
+  delete_confirm: "Are you sure you want to delete this device binding?",
+  delete_title: "Confirm Deletion",
+
+  invalid_status: "Invalid Configuration",
+  invalid_bindings_title: "Detected invalid IP-MAC bindings",
+  invalid_bindings_warning:
+    "After DHCP changes on interface {iface}, {count} IP-MAC bindings are out of current subnet. Please update them.",
+  lease_ip_mismatch: "Current IP does not match configured device IP",
+  configured_ip: "Configured IP",
+  observed_ip: "Current IP",
+  advanced_settings: "Advanced Settings",
+  dhcp_custom_options: "DHCP Custom Options",
+  dhcp_filter_options: "DHCP Filter Options",
+  filter_options_placeholder: "Select options to filter...",
+  go_to_manage: "Go to manage",
+};

@@ -1,0 +1,12 @@
+node_modules
+
+# yarn
+.pnp.*
+.yarn/install-state.gz
+.yarn/unplugged
+
+# generated from Rust OpenAPI spec — regenerate via gen_ts_bindings.sh
+openapi.json
+
+# orval generated files — regenerate via gen_ts_bindings.sh
+src/api/
