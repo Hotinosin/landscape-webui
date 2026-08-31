@@ -6,7 +6,7 @@
     "license": {
       "name": ""
     },
-    "version": "0.23.0"
+    "version": "0.24.2"
   },
   "paths": {
     "/api/auth/login": {
@@ -3915,6 +3915,16 @@
           {
             "name": "limit",
             "in": "query",
+            "description": "单页条数上限(1..=200 会被服务端 clamp);`0` 表示不限制、返回全部匹配行\n缺省不传时服务端按 100 兜底分页。",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
@@ -4040,7 +4050,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LandscapeApiResp_Vec_ConnectHistoryStatus"
+                  "$ref": "#/components/schemas/LandscapeApiResp_ConnectHistoryResponse"
                 }
               }
             }
@@ -4077,6 +4087,16 @@
           },
           {
             "name": "limit",
+            "in": "query",
+            "description": "单页条数上限(1..=200 会被服务端 clamp);`0` 表示不限制、返回全部匹配行\n缺省不传时服务端按 100 兜底分页。",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "offset",
             "in": "query",
             "required": false,
             "schema": {
@@ -4240,6 +4260,16 @@
           },
           {
             "name": "limit",
+            "in": "query",
+            "description": "单页条数上限(1..=200 会被服务端 clamp);`0` 表示不限制、返回全部匹配行\n缺省不传时服务端按 100 兜底分页。",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "offset",
             "in": "query",
             "required": false,
             "schema": {
@@ -7792,6 +7822,25 @@
           "total_ingress_pkts": {
             "type": "integer",
             "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "ConnectHistoryResponse": {
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConnectHistoryStatus"
+            }
+          },
+          "total": {
+            "type": "integer",
             "minimum": 0
           }
         }
@@ -12471,6 +12520,39 @@
           }
         }
       },
+      "LandscapeApiResp_ConnectHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "args": {
+            "type": "object"
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "items",
+              "total"
+            ],
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ConnectHistoryStatus"
+                }
+              },
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "error_id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "LandscapeApiResp_DHCPv4ServiceConfig": {
         "type": "object",
         "properties": {
@@ -14569,7 +14651,7 @@
                 "format": "int64",
                 "minimum": 0
               },
-              "cleanup_time_budget_ms": {
+              "cleanup_time_budget_secs": {
                 "type": "integer",
                 "format": "int64",
                 "minimum": 0
@@ -14589,17 +14671,34 @@
                 "format": "int64",
                 "minimum": 0
               },
+              "connect_db_max_mb": {
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
               "connect_second_window_minutes": {
                 "type": "integer",
                 "format": "int64",
                 "minimum": 0
               },
-              "db_max_memory_mb": {
+              "connect_summary_max_rows": {
                 "type": "integer",
+                "format": "int64",
                 "minimum": 0
               },
-              "db_max_threads": {
+              "connect_summary_retention_days": {
                 "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "dns_1m_retention_days": {
+                "type": "integer",
+                "format": "int64",
+                "minimum": 0
+              },
+              "dns_db_max_mb": {
+                "type": "integer",
+                "format": "int64",
                 "minimum": 0
               },
               "dns_retention_days": {
@@ -16102,132 +16201,6 @@
                 "update_at": {
                   "type": "number",
                   "format": "double"
-                }
-              }
-            }
-          },
-          "error_id": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "LandscapeApiResp_Vec_ConnectHistoryStatus": {
-        "type": "object",
-        "properties": {
-          "args": {
-            "type": "object"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "key",
-                "src_ip",
-                "dst_ip",
-                "src_port",
-                "dst_port",
-                "l4_proto",
-                "l3_proto",
-                "flow_id",
-                "trace_id",
-                "gress",
-                "ifindex",
-                "create_time_ms",
-                "total_ingress_bytes",
-                "total_egress_bytes",
-                "total_ingress_pkts",
-                "total_egress_pkts",
-                "last_report_time",
-                "status"
-              ],
-              "properties": {
-                "create_time_ms": {
-                  "type": "integer",
-                  "format": "int64",
-                  "minimum": 0
-                },
-                "dst_ip": {
-                  "type": "string"
-                },
-                "dst_port": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
-                },
-                "flow_id": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
-                },
-                "gress": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
-                },
-                "ifindex": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
-                },
-                "key": {
-                  "$ref": "#/components/schemas/ConnectKey"
-                },
-                "l3_proto": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
-                },
-                "l4_proto": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
-                },
-                "last_report_time": {
-                  "type": "integer",
-                  "format": "int64",
-                  "minimum": 0
-                },
-                "src_ip": {
-                  "type": "string"
-                },
-                "src_port": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
-                },
-                "status": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
-                },
-                "total_egress_bytes": {
-                  "type": "integer",
-                  "format": "int64",
-                  "minimum": 0
-                },
-                "total_egress_pkts": {
-                  "type": "integer",
-                  "format": "int64",
-                  "minimum": 0
-                },
-                "total_ingress_bytes": {
-                  "type": "integer",
-                  "format": "int64",
-                  "minimum": 0
-                },
-                "total_ingress_pkts": {
-                  "type": "integer",
-                  "format": "int64",
-                  "minimum": 0
-                },
-                "trace_id": {
-                  "type": "integer",
-                  "format": "int32",
-                  "minimum": 0
                 }
               }
             }
@@ -18414,7 +18387,7 @@
             "format": "int64",
             "minimum": 0
           },
-          "cleanup_time_budget_ms": {
+          "cleanup_time_budget_secs": {
             "type": "integer",
             "format": "int64",
             "minimum": 0
@@ -18434,17 +18407,34 @@
             "format": "int64",
             "minimum": 0
           },
+          "connect_db_max_mb": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
           "connect_second_window_minutes": {
             "type": "integer",
             "format": "int64",
             "minimum": 0
           },
-          "db_max_memory_mb": {
+          "connect_summary_max_rows": {
             "type": "integer",
+            "format": "int64",
             "minimum": 0
           },
-          "db_max_threads": {
+          "connect_summary_retention_days": {
             "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "dns_1m_retention_days": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "dns_db_max_mb": {
+            "type": "integer",
+            "format": "int64",
             "minimum": 0
           },
           "dns_retention_days": {
@@ -18848,7 +18838,8 @@
         "enum": [
           "off",
           "memory",
-          "duckdb"
+          "duckdb",
+          "persistent"
         ]
       },
       "MetricResolution": {
