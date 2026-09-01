@@ -49,6 +49,12 @@ export interface ThemeTokens {
   statusSuccessSurfaceColor: string;
   statusSuccessBorderColor: string;
   accentPurpleColor: string;
+  tagEntryColor: string;
+  tagEntrySurfaceColor: string;
+  tagMatchColor: string;
+  tagMatchSurfaceColor: string;
+  tagUpstreamColor: string;
+  tagUpstreamSurfaceColor: string;
   backdropSurfaceColor: string;
   terminalBackgroundColor: string;
   terminalHeaderColor: string;
@@ -136,6 +142,21 @@ function createTheme(
       },
       Button: {
         heightSmall: "28px",
+        colorOpacitySecondary: "0.22",
+        colorOpacitySecondaryHover: "0.28",
+        colorOpacitySecondaryPressed: "0.34",
+        colorPrimary: tokens.brandActiveColor,
+        colorHoverPrimary: tokens.brandColor,
+        colorPressedPrimary: tokens.brandActiveColor,
+        colorFocusPrimary: tokens.brandColor,
+        textColorTextPrimary: tokens.brandActiveColor,
+        textColorTextHoverPrimary: tokens.brandColor,
+        textColorTextPressedPrimary: tokens.brandActiveColor,
+        textColorTextFocusPrimary: tokens.brandColor,
+        textColorGhostPrimary: tokens.brandActiveColor,
+        textColorGhostHoverPrimary: tokens.brandColor,
+        textColorGhostPressedPrimary: tokens.brandActiveColor,
+        textColorGhostFocusPrimary: tokens.brandColor,
         borderRadiusTiny: tokens.radiusControl,
         borderRadiusSmall: tokens.radiusControl,
         borderRadiusMedium: tokens.radiusControl,
@@ -147,6 +168,14 @@ function createTheme(
       Tag: {
         heightSmall: "28px",
         borderRadius: tokens.radiusControl,
+      },
+      Popover: {
+        color: tokens.surfaceOverlayColor,
+        textColor: tokens.textPrimaryColor,
+      },
+      Tooltip: {
+        color: tokens.surfaceOverlayColor,
+        textColor: tokens.textPrimaryColor,
       },
       Tabs: {
         tabBorderRadius: tokens.radiusControl,
@@ -217,6 +246,12 @@ export const themeRegistry: Record<ThemeName, LandscapeTheme> = {
     statusSuccessSurfaceColor: "rgba(24, 160, 88, 0.08)",
     statusSuccessBorderColor: "rgba(24, 160, 88, 0.25)",
     accentPurpleColor: "#665cf6",
+    tagEntryColor: "#087f8c",
+    tagEntrySurfaceColor: "rgba(8, 127, 140, 0.14)",
+    tagMatchColor: "#d97706",
+    tagMatchSurfaceColor: "rgba(217, 119, 6, 0.16)",
+    tagUpstreamColor: "#be185d",
+    tagUpstreamSurfaceColor: "rgba(190, 24, 93, 0.14)",
     backdropSurfaceColor: "rgba(255, 255, 255, 0.72)",
     terminalBackgroundColor: "#000000",
     terminalHeaderColor: "rgb(72, 72, 78)",
@@ -286,6 +321,12 @@ export const themeRegistry: Record<ThemeName, LandscapeTheme> = {
     statusSuccessSurfaceColor: "rgba(99, 226, 183, 0.08)",
     statusSuccessBorderColor: "rgba(99, 226, 183, 0.25)",
     accentPurpleColor: "#958cff",
+    tagEntryColor: "#5eead4",
+    tagEntrySurfaceColor: "rgba(94, 234, 212, 0.16)",
+    tagMatchColor: "#fbbf24",
+    tagMatchSurfaceColor: "rgba(251, 191, 36, 0.16)",
+    tagUpstreamColor: "#f9a8d4",
+    tagUpstreamSurfaceColor: "rgba(249, 168, 212, 0.18)",
     backdropSurfaceColor: "rgba(24, 24, 28, 0.72)",
     terminalBackgroundColor: "#000000",
     terminalHeaderColor: "rgb(72, 72, 78)",

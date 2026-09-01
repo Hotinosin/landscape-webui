@@ -6,7 +6,7 @@ export default {
       "数值越小优先级越高，规则按数值从小到大匹配，命中后停止。例如 1 高于 1000。",
     remark: "备注",
     filter_result: "是否过滤结果",
-    flow_action: "流量动作",
+    flow_action: "规则出口",
     upstream_select: "DNS 上游选择",
     source_rules_title: "处理域名匹配规则 (无规则将全部匹配, 规则不分先后)",
     copy: "复制",
@@ -22,6 +22,7 @@ export default {
     duplicate_priority_warning:
       "**优先级** 值不能为 -1, 且不能重复, 否则将会覆盖规则",
     source_style_full: "精确匹配",
+    source_style_geo: "地理关系库",
     source_style_domain: "域名匹配",
     source_style_regex: "正则匹配",
     source_style_plain: "关键词匹配",
@@ -109,7 +110,7 @@ export default {
     confirm_delete: "确定删除吗",
   },
   rule_card: {
-    traffic_action: "流量动作",
+    traffic_action: "规则出口",
     upstream_config: "DNS 上游配置",
     match_rules: "匹配规则",
     no_match_rules: "无匹配规则, 将会匹配所有域名",
